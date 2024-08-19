@@ -8,21 +8,24 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+    id("com.diffplug.spotless") version "6.25.0"
 }
 
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
+    maven {
+        url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+        mavenContent {
+            snapshotsOnly()
+        }
+    }
 }
 
 dependencies {
-    // Use JUnit Jupiter for testing.
-    testImplementation(libs.junit.jupiter)
-
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
     // This dependency is used by the application.
-    implementation(libs.guava)
+    implementation(libs.mongodb.driver)
+    implementation(libs.mongodb.crypt)
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -32,12 +35,14 @@ java {
     }
 }
 
-application {
-    // Define the main class for the application.
-    mainClass = "org.example.App"
+spotless {
+    java {
+        palantirJavaFormat()
+        formatAnnotations()
+    }
 }
 
-tasks.named<Test>("test") {
-    // Use JUnit Platform for unit tests.
-    useJUnitPlatform()
+application {
+    // Define the main class for the application.
+    mainClass = "demo.ExplicitEncryption"
 }
