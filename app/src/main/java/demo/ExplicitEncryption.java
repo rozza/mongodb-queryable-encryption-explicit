@@ -78,7 +78,7 @@ public class ExplicitEncryption {
             RangeOptions rangeOptions = new RangeOptions()
                     .min(new BsonInt32(0))
                     .max(new BsonInt32(200))
-                    .setTrimFactor(1)
+                    .trimFactor(1)
                     .sparsity(1L);
 
             EncryptOptions encryptValueOptions = new EncryptOptions("Range")
@@ -177,133 +177,9 @@ public class ExplicitEncryption {
         System.out.println("\n");
     }
 
-    public static void exncryptExpression() {
-        System.out.println("============================");
-        System.out.println("         STARTING");
-        System.out.println("============================");
-
-        // This would have to be the same master key as was used to create the encryption key
-        byte[] localMasterKey = new byte[96];
-        new SecureRandom().nextBytes(localMasterKey);
-
-        Map<String, Map<String, Object>> kmsProviders = new HashMap<>() {
-            {
-                put("local", new HashMap<>() {
-                    {
-                        put("key", localMasterKey);
-                    }
-                });
-            }
-        };
-
-        String keyVaultNamespace = "encryption.__keyVault";
-        ClientEncryptionSettings clientEncryptionSettings = ClientEncryptionSettings.builder()
-                .keyVaultMongoClientSettings(MongoClientSettings.builder()
-                        .applyConnectionString(new ConnectionString("mongodb://localhost"))
-                        .build())
-                .keyVaultNamespace(keyVaultNamespace)
-                .kmsProviders(kmsProviders)
-                .build();
-
-        try (ClientEncryption clientEncryption = ClientEncryptions.create(clientEncryptionSettings)) {
-            BsonBinary dataKeyId = clientEncryption.createDataKey("local", new DataKeyOptions());
-
-            RangeOptions rangeOptions = new RangeOptions()
-                    .min(new BsonInt32(0))
-                    .max(new BsonInt32(200))
-                    .setTrimFactor(1)
-                    .sparsity(1L);
-
-            EncryptOptions encryptValueOptions = new EncryptOptions("Range")
-                    .keyId(dataKeyId)
-                    .contentionFactor(0L)
-                    .rangeOptions(rangeOptions);
-
-            EncryptOptions encryptQueryOptions = new EncryptOptions("Range")
-                    .keyId(dataKeyId)
-                    .queryType("Range")
-                    .contentionFactor(0L)
-                    .rangeOptions(rangeOptions);
-
-            MongoClientSettings clientSettings = MongoClientSettings.builder()
-                    .autoEncryptionSettings(AutoEncryptionSettings.builder()
-                            .keyVaultNamespace(keyVaultNamespace)
-                            .kmsProviders(kmsProviders)
-                            .bypassQueryAnalysis(true)
-                            .build()) // Auto encryption settings are required
-                    .build();
-
-            try (MongoClient mongoClient = MongoClients.create(clientSettings)) {
-                String databaseName = "testExplicitEncryption";
-                String collectionName = "explicit_encryption";
-
-                MongoDatabase database = mongoClient.getDatabase(databaseName);
-                database.drop();
-                MongoCollection<BsonDocument> collection = database.getCollection(collectionName, BsonDocument.class);
-
-                BsonDocument encryptedFields = new BsonDocument()
-                        .append(
-                                "fields",
-                                new BsonArray(singletonList(new BsonDocument("keyId", dataKeyId)
-                                        .append("path", new BsonString(ENCRYPTED_FIELD))
-                                        .append("bsonType", new BsonString("int"))
-                                        .append(
-                                                "queries",
-                                                new BsonDocument("queryType", new BsonString("range"))
-                                                        .append("contention", new BsonInt64(0L))
-                                                        .append("trimFactor", new BsonInt32(1))
-                                                        .append("sparsity", new BsonInt64(1))
-                                                        .append("min", new BsonInt32(0))
-                                                        .append("max", new BsonInt32(200))))));
-
-                database.createCollection(
-                        collectionName, new CreateCollectionOptions().encryptedFields(encryptedFields));
-
-                // Explicitly encrypt a field
-                System.out.println("\n  > Inserting some data");
-                List<BsonDocument> documents = IntStream.range(1, 10)
-                        .boxed()
-                        .map(i -> new BsonDocument("_id", new BsonInt32(i))
-                                .append(
-                                        ENCRYPTED_FIELD,
-                                        encryptValue(clientEncryption, new BsonInt32(i), encryptValueOptions)))
-                        .toList();
-                InsertManyResult insertManyResult = collection.insertMany(documents);
-                System.out.println(
-                        "    Inserted: " + insertManyResult.getInsertedIds().size() + " documents.");
-
-                System.out.println("\n  > Example of the data without decryption:\n");
-                System.out.println(collection.find().into(new ArrayList<>()).stream()
-                        .map(BsonDocument::toJson)
-                        .collect(Collectors.joining(",\n    ", "    ", "\n")));
-
-                System.out.println("\n  > Finding the data within a range using encryptExpression:\n");
-                Bson encryptExpression = Filters.and(Filters.gte(ENCRYPTED_FIELD, 3), Filters.lte(ENCRYPTED_FIELD, 9));
-                BsonDocument encryptedQuery =
-                        encryptExpression(clientEncryption, encryptExpression, encryptQueryOptions);
-                System.out.println("  Query: " + encryptExpression);
-                System.out.println("  Query Encrypted: " + encryptedQuery + " \n");
-
-                System.out.println(
-                        collection.find(encryptedQuery).sort(Sorts.ascending("_id")).into(new ArrayList<>()).stream()
-                                .map(BsonDocument::toJson)
-                                .collect(Collectors.joining(",\n    ", "    ", "\n")));
-            }
-        }
-
-        System.out.println("============================");
-        System.out.println("         fin.");
-        System.out.println("============================");
-        System.out.println("\n");
-    }
-
     private static BsonValue encryptValue(
             ClientEncryption clientEncryption, BsonValue value, EncryptOptions encryptOptions) {
         return clientEncryption.encrypt(value, encryptOptions);
-    }
-
-    private static BsonValue decryptValue(ClientEncryption clientEncryption, BsonBinary value) {
-        return clientEncryption.decrypt(value);
     }
 
     private static BsonDocument encryptExpression(
