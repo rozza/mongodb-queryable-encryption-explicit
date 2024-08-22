@@ -45,4 +45,5 @@ spotless {
 application {
     // Define the main class for the application.
     mainClass = "demo.ExplicitEncryption"
+    applicationDefaultJvmArgs = listOf("-Dexample=single")
 }
