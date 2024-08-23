@@ -15,7 +15,7 @@ public class ExplicitEncryption {
         String exampleToRun = System.getProperty("example", "single");
 
         if (exampleToRun.equalsIgnoreCase("single")) {
-            ExplicitEncryptionMultiField.main(args);
+            ExplicitEncryptionSingleField.main(args);
         } else if (exampleToRun.equalsIgnoreCase("multi")) {
             ExplicitEncryptionMultiField.main(args);
         } else {
