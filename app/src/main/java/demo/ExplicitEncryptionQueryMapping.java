@@ -148,25 +148,17 @@ public class ExplicitEncryptionQueryMapping {
                 System.out.println("\n  > Finding the data within a range using encryptExpression:\n");
 
                 Bson encryptExpressionGTE = Filters.and(Filters.gte(ENCRYPTED_FIELD, 5));
-                Bson encryptExpressionLTE = Filters.and(Filters.lte(ENCRYPTED_FIELD, 10));
-
-                System.out.println(
-                        " <|GTE|>  Query: " + encryptExpressionGTE.toBsonDocument().toJson());
                 BsonDocument encryptedQueryGTE =
                         encryptExpression(clientEncryption, encryptExpressionGTE, encryptExpressionOptions);
 
-                System.out.println(
-                        " <|LTE|>  Query: " + encryptExpressionLTE.toBsonDocument().toJson());
+                Bson encryptExpressionLTE = Filters.and(Filters.lte(ENCRYPTED_FIELD, 10));
                 BsonDocument encryptedQueryLTE =
                         encryptExpression(clientEncryption, encryptExpressionLTE, encryptExpressionOptions);
-                
+
                 BsonArray mixedAndQuery = new BsonArray();
                 mixedAndQuery.addAll(encryptedQueryGTE.getArray("$and"));
                 mixedAndQuery.addAll(encryptedQueryLTE.getArray("$and"));
                 BsonDocument mixedQuery = new BsonDocument("$and", mixedAndQuery);
-
-                System.out.println("  Mixing encrypted range query with other criteria.");
-
 
                 System.out.println("  Query Mixed: " + mixedQuery.toJson() + " \n");
 
