@@ -18,6 +18,8 @@ public class ExplicitEncryption {
             ExplicitEncryptionSingleField.main(args);
         } else if (exampleToRun.equalsIgnoreCase("multi")) {
             ExplicitEncryptionMultiField.main(args);
+        } else if (exampleToRun.equalsIgnoreCase("query")) {
+            ExplicitEncryptionQueryMapping.main(args);
         } else {
             System.out.println("Unrecognized example: " + exampleToRun);
         }
