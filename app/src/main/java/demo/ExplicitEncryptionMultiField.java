@@ -40,8 +40,8 @@ import org.bson.conversions.Bson;
 
 public class ExplicitEncryptionMultiField {
 
-    private static final String ENCRYPTED_FIELD_1 = "encryptedInt1";
-    private static final String ENCRYPTED_FIELD_2 = "encryptedInt2";
+    private static final String ENCRYPTED_FIELD_1 = "encryptedInt";
+    private static final String ENCRYPTED_FIELD_2 = "encryptedLong";
 
     public static void main(String[] args) {
         System.out.println("============================");
@@ -184,7 +184,7 @@ public class ExplicitEncryptionMultiField {
 
                 BsonDocument encryptedQuery1 =
                         encryptExpression(clientEncryption, encryptExpression1, encryptExpressionOptions1);
-                Bson encryptExpression2 = Filters.and(Filters.gte(ENCRYPTED_FIELD_2, 30L));
+                Bson encryptExpression2 = Filters.and(Filters.lte(ENCRYPTED_FIELD_2, 30L));
                 BsonDocument encryptedQuery2 =
                         encryptExpression(clientEncryption, encryptExpression2, encryptExpressionOptions2);
 
