@@ -17,10 +17,17 @@ To run the multiple encrypted field example:
 ./gradlew run -Dexample=multi
 ```
 
-The `ExplicitEncryptionSingle` or `ExplicitEncryptionMulti` class will:  connect to MongoDB, 
+The examples are as follows:
 
-- create a collection with encrypted options. 
+- "single" - a single range field
+- "multi" - multiple range fields
+- "multiCollection" - shared MongoClient with multiple different encryption types in the multiple collections
+- "multiMixed" - multiple different encryption types in the same collection - expected to fail.
+- "query" - mapping queries
+
+The examples will:
+
+- create a collection with encrypted options.
 - Insert some encrypted test data,
-- Use `encryptExpression` to create a range query to run against the collection.
+- Encrypt values to create a range query to run against the collection.
 - Run an example of mixing the encrypted range query, with additional field filtering.
-
