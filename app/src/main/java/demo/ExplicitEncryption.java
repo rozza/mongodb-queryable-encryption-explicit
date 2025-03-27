@@ -16,6 +16,8 @@ public class ExplicitEncryption {
 
         if (exampleToRun.equalsIgnoreCase("single")) {
             ExplicitEncryptionSingleField.main(args);
+        } else if (exampleToRun.equalsIgnoreCase("singleEquality")) {
+                ExplicitEncryptionSingleFieldEquality.main(args);
         } else if (exampleToRun.equalsIgnoreCase("multi")) {
             ExplicitEncryptionMultiField.main(args);
         } else if (exampleToRun.equalsIgnoreCase("multiMixed")) {
